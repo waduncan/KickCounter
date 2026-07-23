@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <path
+    fill="#f36f52"
+    d="M32 3C46.4 2.4 58.2 11.7 60.4 25.8c2.4 15-5.3 29.6-20.1 34-14.5 4.3-30-2.2-35.2-16.4C-.4 28.5 5.7 12.2 20 6.1 23.8 4.5 27.9 3.2 32 3Z"
+  />
+  <text
+    x="32"
+    y="40"
+    fill="#fff"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="23"
+    font-weight="900"
+    letter-spacing="-1.5"
+    text-anchor="middle"
+  >10</text>
+</svg>
