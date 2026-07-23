@@ -35,6 +35,20 @@ body {
   color: var(--ink);
 }
 
+.app-version {
+  position: fixed;
+  z-index: 50;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(7px, env(safe-area-inset-bottom));
+  color: rgba(25, 59, 52, 0.5);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
 button,
 input,
 textarea {
