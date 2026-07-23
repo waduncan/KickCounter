@@ -1,0 +1,10 @@
+{
+  "name": "Little Kicks — Baby movement tracker",
+  "short_name": "Little Kicks",
+  "description": "A calm, private way to time and record baby movements.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f2ea",
+  "theme_color": "#f7f2ea",
+  "orientation": "portrait-primary"
+}
