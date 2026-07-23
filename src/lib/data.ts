@@ -1,7 +1,13 @@
-import type { KickSession, NewKickSession } from "../types";
+import type {
+  KickSession,
+  NewKickSession,
+  UserProfile,
+  UserProfileInput,
+} from "../types";
 import { getSupabase } from "./supabase";
 
 const DEMO_STORAGE_KEY = "little-kicks-demo-sessions";
+const DEMO_PROFILE_STORAGE_KEY = "little-kicks-demo-profile";
 
 function dateAt(daysAgo: number, hour: number, minute: number): Date {
   const date = new Date();
@@ -128,4 +134,80 @@ export async function createSession(
 
   if (error) throw error;
   return data as KickSession;
+}
+
+function readDemoProfile(): UserProfile | null {
+  try {
+    const saved = localStorage.getItem(DEMO_PROFILE_STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as UserProfile) : null;
+  } catch {
+    return null;
+  }
+}
+
+function cleanOptional(value: string): string | null {
+  return value.trim() || null;
+}
+
+export async function loadUserProfile(demoMode: boolean): Promise<UserProfile | null> {
+  if (demoMode) return readDemoProfile();
+
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase is not configured.");
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as UserProfile | null;
+}
+
+export async function saveUserProfile(
+  input: UserProfileInput,
+  userId: string,
+  demoMode: boolean,
+): Promise<UserProfile> {
+  const now = new Date().toISOString();
+  const existingDemoProfile = demoMode ? readDemoProfile() : null;
+  const profile: UserProfile = {
+    user_id: userId,
+    expected_due_date: cleanOptional(input.expectedDueDate),
+    baby_name: cleanOptional(input.babyName),
+    doctor_name: cleanOptional(input.doctorName),
+    doctor_phone: cleanOptional(input.doctorPhone),
+    doctor_website: cleanOptional(input.doctorWebsite),
+    created_at: existingDemoProfile?.created_at ?? now,
+    updated_at: now,
+  };
+
+  if (demoMode) {
+    try {
+      localStorage.setItem(DEMO_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    } catch {
+      // The saved profile remains available in memory for this visit.
+    }
+    return profile;
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase is not configured.");
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert({
+      user_id: userId,
+      expected_due_date: profile.expected_due_date,
+      baby_name: profile.baby_name,
+      doctor_name: profile.doctor_name,
+      doctor_phone: profile.doctor_phone,
+      doctor_website: profile.doctor_website,
+      updated_at: now,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as UserProfile;
 }

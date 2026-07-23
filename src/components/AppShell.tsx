@@ -1,8 +1,21 @@
 import { useEffect, useState } from "react";
-import { createSession, loadSessions } from "../lib/data";
-import type { AppTab, KickSession, NewKickSession, UserIdentity } from "../types";
+import {
+  createSession,
+  loadSessions,
+  loadUserProfile,
+  saveUserProfile,
+} from "../lib/data";
+import type {
+  AppTab,
+  KickSession,
+  NewKickSession,
+  UserIdentity,
+  UserProfile,
+  UserProfileInput,
+} from "../types";
 import { History } from "./History";
 import { Insights } from "./Insights";
+import { Profile } from "./Profile";
 import { Tracker } from "./Tracker";
 
 interface AppShellProps {
@@ -22,6 +35,9 @@ export function AppShell({ user, demoMode, onSignOut }: AppShellProps) {
   const [sessions, setSessions] = useState<KickSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
@@ -45,13 +61,48 @@ export function AppShell({ user, demoMode, onSignOut }: AppShellProps) {
     };
   }, [demoMode]);
 
+  useEffect(() => {
+    let active = true;
+    setProfileLoading(true);
+    loadUserProfile(demoMode)
+      .then((result) => {
+        if (!active) return;
+        setProfile(result);
+        setProfileError(null);
+      })
+      .catch((loadError: unknown) => {
+        if (!active) return;
+        setProfileError(loadError instanceof Error ? loadError.message : "Your profile could not be loaded.");
+      })
+      .finally(() => {
+        if (active) setProfileLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [demoMode]);
+
   async function saveSession(input: NewKickSession) {
     const created = await createSession(input, user.id, demoMode);
     setSessions((current) => [created, ...current]);
     return created;
   }
 
+  async function saveProfile(input: UserProfileInput) {
+    const saved = await saveUserProfile(input, user.id, demoMode);
+    setProfile(saved);
+    setProfileError(null);
+    return saved;
+  }
+
   const initials = user.email.slice(0, 2).toUpperCase();
+  const hasProfileDetails = Boolean(
+    profile?.expected_due_date ||
+    profile?.baby_name ||
+    profile?.doctor_name ||
+    profile?.doctor_phone ||
+    profile?.doctor_website,
+  );
 
   return (
     <div className="app-shell">
@@ -67,7 +118,10 @@ export function AppShell({ user, demoMode, onSignOut }: AppShellProps) {
               key={item.id}
               className={tab === item.id ? "nav-item nav-item-active" : "nav-item"}
               type="button"
-              onClick={() => setTab(item.id)}
+              onClick={() => {
+                setTab(item.id);
+                setProfileOpen(false);
+              }}
               aria-current={tab === item.id ? "page" : undefined}
             >
               {item.label}
@@ -88,7 +142,18 @@ export function AppShell({ user, demoMode, onSignOut }: AppShellProps) {
           {profileOpen && (
             <div className="profile-menu">
               <span className="profile-email">{demoMode ? "Sample data mode" : user.email}</span>
-              <button type="button" onClick={onSignOut}>
+              <button
+                className="profile-menu-item"
+                type="button"
+                onClick={() => {
+                  setTab("profile");
+                  setProfileOpen(false);
+                }}
+              >
+                <span>{hasProfileDetails ? "Edit profile" : "Set up profile"}</span>
+                <span aria-hidden="true">→</span>
+              </button>
+              <button className="profile-menu-item profile-menu-signout" type="button" onClick={onSignOut}>
                 {demoMode ? "Exit sample mode" : "Sign out"}
               </button>
             </div>
@@ -121,6 +186,15 @@ export function AppShell({ user, demoMode, onSignOut }: AppShellProps) {
         )}
         {tab === "insights" && <Insights sessions={sessions} loading={loading} />}
         {tab === "history" && <History sessions={sessions} loading={loading} />}
+        {tab === "profile" && (
+          <Profile
+            email={demoMode ? "Sample data mode" : user.email}
+            profile={profile}
+            loading={profileLoading}
+            loadError={profileError}
+            onSave={saveProfile}
+          />
+        )}
       </main>
 
       <nav className="mobile-nav" aria-label="Main navigation">
@@ -129,7 +203,10 @@ export function AppShell({ user, demoMode, onSignOut }: AppShellProps) {
             key={item.id}
             className={tab === item.id ? "mobile-nav-item mobile-nav-active" : "mobile-nav-item"}
             type="button"
-            onClick={() => setTab(item.id)}
+            onClick={() => {
+              setTab(item.id);
+              setProfileOpen(false);
+            }}
             aria-current={tab === item.id ? "page" : undefined}
           >
             <span className={`nav-dot nav-dot-${item.id}`} aria-hidden="true" />

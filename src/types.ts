@@ -1,4 +1,4 @@
-export type AppTab = "today" | "insights" | "history";
+export type AppTab = "today" | "insights" | "history" | "profile";
 
 export interface KickSession {
   id: string;
@@ -24,4 +24,23 @@ export interface NewKickSession {
 export interface UserIdentity {
   id: string;
   email: string;
+}
+
+export interface UserProfile {
+  user_id: string;
+  expected_due_date: string | null;
+  baby_name: string | null;
+  doctor_name: string | null;
+  doctor_phone: string | null;
+  doctor_website: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfileInput {
+  expectedDueDate: string;
+  babyName: string;
+  doctorName: string;
+  doctorPhone: string;
+  doctorWebsite: string;
 }

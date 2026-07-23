@@ -11,6 +11,7 @@ A responsive baby movement tracker built with React, Supabase, and Cloudflare Pa
 - Count correction and optional notes before saving
 - Resume protection for an in-progress session after an accidental refresh
 - Dashboard statistics, pace trends, weekly activity, time-of-day distribution, and session history
+- A private pregnancy profile with due-date-derived gestational age, baby name, and doctor contact details
 - Owner-only Row Level Security policies so each account can access only its own records
 - A sample-data mode when Supabase variables are not present
 - Responsive layouts and safe-area handling for iOS
@@ -18,7 +19,7 @@ A responsive baby movement tracker built with React, Supabase, and Cloudflare Pa
 ## 1. Create the Supabase backend
 
 1. Create a Supabase project.
-2. Open **SQL Editor** and run [`supabase/migrations/20260722000000_create_kick_sessions.sql`](supabase/migrations/20260722000000_create_kick_sessions.sql).
+2. Open **SQL Editor** and run the SQL files in [`supabase/migrations`](supabase/migrations) in filename order.
 3. In **Authentication → Providers**, enable Email.
 4. In **Authentication → URL Configuration**, set the Site URL to the final Cloudflare Pages URL. Add `http://localhost:5173` as a redirect URL for local development.
 5. In the project's **Connect** dialog, copy the Project URL and publishable key.
